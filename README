@@ -1,0 +1,30 @@
+Berikut adalah kegunaan dari setiap folder di dalam struktur proyek "TaskMaster - Penjadwalan dan Manajemen Tugas Mahasiswa":
+
+app/ :
+Folder ini berisi seluruh kode yang dikembangkan untuk aplikasi, termasuk model, view, dan controller.
+
+controllers/ :
+Folder ini berisi file PHP yang mengatur logika bisnis aplikasi, yaitu menghubungkan model dan view. Setiap controller menyediakan aksi untuk setiap fitur yang terdapat pada aplikasi.
+
+models/ :
+Folder ini berisi file PHP yang berfungsi sebagai lapisan akses data, yang digunakan untuk mengelola data dalam database.
+
+views/ :
+Folder ini berisi file PHP yang menampilkan data dari model ke pengguna. Setiap view berisi tampilan halaman web yang diperlukan untuk setiap fitur aplikasi.
+
+config/ :
+Folder ini berisi file konfigurasi aplikasi, termasuk koneksi database, konfigurasi sistem, dan file konfigurasi lainnya.
+
+database.php :
+File ini berisi konfigurasi koneksi database. Setiap koneksi database dapat ditentukan di file ini.
+public/ :
+Folder ini berisi file yang dapat diakses publik, termasuk file index.php dan aset seperti gambar, script, dan stylesheet.
+
+index.php :
+File ini merupakan titik masuk untuk aplikasi web. File ini mengatur routing untuk aplikasi dan memanggil controller untuk setiap permintaan dari pengguna.
+
+assets/ :
+Folder ini berisi file aset publik, seperti gambar, script, dan stylesheet.
+
+vendor/ :
+Folder ini berisi file dependensi yang diinstal menggunakan Composer, yaitu paket-paket yang dibutuhkan oleh aplikasi.
