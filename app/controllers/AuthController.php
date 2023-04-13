@@ -11,10 +11,25 @@ class AuthController {
 
     public function register($nama, $email, $password) {
         $user = new User($this->conn);
+    
+        if ($user->isEmailRegistered($email)) {
+            return false;
+        }
+    
         return $user->register($nama, $email, $password);
     }
 
-    // Anda akan menambahkan method login di sini nanti
+    public function isEmailRegistered($email) {
+        $user = new User($this->conn);
+        return $user->getUserByEmail($email) !== false;
+    }
+    
+    
+
+    public function login($email, $password) {
+        $user = new User($this->conn);
+        return $user->login($email, $password);
+    }
 }
 
 ?>
