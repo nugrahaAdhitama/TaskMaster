@@ -42,6 +42,48 @@ class User {
         $salted_password = $front_salt . $password . $back_salt;
         return hash('sha256', $salted_password);
     }
+
+    public function login($email, $password) {
+        $hashedPassword = $this->hashPassword($password);
+
+        $query = "SELECT * FROM users WHERE email = :email AND password = :password";
+        $stmt = $this->conn->prepare($query);
+
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':password', $hashedPassword);
+
+        $stmt->execute();
+
+        if($stmt->rowCount() > 0) {
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $user;
+        } else {
+            return false;
+        }
+    }
+
+    public function isEmailRegistered($email) {
+        $query = "SELECT COUNT(*) FROM users WHERE email = :email";
+        $stmt = $this->conn->prepare($query);
+    
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+    
+        $count = $stmt->fetchColumn();
+        return $count > 0;
+    }
+
+    public function getUserByEmail($email) {
+        $query = "SELECT * FROM users WHERE email = :email";
+        $stmt = $this->conn->prepare($query);
+    
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+    
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
+    
 }
 
 ?>
