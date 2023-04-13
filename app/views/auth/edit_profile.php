@@ -4,6 +4,6 @@
         <input type="text" name="nama" id="nama" value="<?php echo $_SESSION['user']['nama']; ?>"><br><br>
         <label for="email">Email:</label>
         <input type="email" name="email" id="email" value="<?php echo $_SESSION['user']['email']; ?>"><br><br>
-        <input type="submit" value="Save">
+        <input type="submit" name="submit" value="Save">
     </form>
     <a href="index.php?action=profile">Back to Profile</a>
