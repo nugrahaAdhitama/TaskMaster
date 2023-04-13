@@ -26,6 +26,47 @@ class User {
         }
     }
 
+    public function read($id) {
+        $query = "SELECT * FROM users WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+    
+        $stmt->bindParam(':id', $id);
+    
+        if ($stmt->execute()) {
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } else {
+            return false;
+        }
+    }
+    
+    public function update($id, $data) {
+        $query = "UPDATE users SET nama = :nama, email = :email WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+    
+        $stmt->bindParam(':id', $id);
+        $stmt->bindParam(':nama', $data['nama']);
+        $stmt->bindParam(':email', $data['email']);
+    
+        if ($stmt->execute()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public function delete($id) {
+        $query = "DELETE FROM users WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+    
+        $stmt->bindParam(':id', $id);
+    
+        if ($stmt->execute()) {
+            return true;
+        } else {
+            return false;
+        }
+    }    
+
     private function generateUUID() {
         return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
             mt_rand(0, 0xffff), mt_rand(0, 0xffff),
@@ -36,7 +77,7 @@ class User {
         );
     }
 
-    private function hashPassword($password) {
+    public function hashPassword($password) {
         $front_salt = "s3FE2Geoxo9+(L3F";
         $back_salt = "QN3+*5nHkP=RtU=D";
         $salted_password = $front_salt . $password . $back_salt;
