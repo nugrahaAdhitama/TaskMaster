@@ -17,9 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "Registration successful!";
         header("Refresh: 2; URL=login.php");
     } else {
-        // Registrasi gagal, tampilkan pesan kesalahan
-        echo "Registration failed. Please try again.";
-        header("Refresh: 2; URL=register.php");
+        if ($authController->isEmailRegistered($email)) {
+            // Email sudah terdaftar, tampilkan pesan kesalahan
+            echo "Email already registered. Please try again with a different email.";
+        } else {
+            // Registrasi gagal, tampilkan pesan kesalahan
+            echo "Registration failed. Please try again.";
+        }
+        header("Refresh: 2; URL=index.php?action=register");
     }
 } else {
     // Jika request method bukan POST, alihkan ke halaman register
