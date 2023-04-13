@@ -11,13 +11,12 @@ class AuthController {
 
     public function register($nama, $email, $password) {
         $user = new User($this->conn);
-        $hashedPassword = $user->hashPassword($password);
     
         if ($user->isEmailRegistered($email)) {
             return false;
         }
     
-        return $user->register($nama, $email, $hashedPassword);
+        return $user->register($nama, $email, $password);
     }
     
     public function isEmailRegistered($email) {
