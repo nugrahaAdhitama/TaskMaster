@@ -2,13 +2,13 @@
 
 require '../config/database.php';
 require '../app/models/User.php';
-require '../app/controllers/AuthController.php';
+// require '../app/controllers/AuthController.php';
 
 session_start();
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'home';
 
-$_SESSION["CURRENT_PAGE"] = ucfirst($action);
+$_SESSION["CURRENT_PAGE"] = ucwords(str_replace('_', ' ', $action));
 require_once '../app/views/{templates}/header.php';
 
 switch ($action) {
