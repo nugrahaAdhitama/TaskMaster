@@ -6,7 +6,10 @@ require '../app/controllers/AuthController.php';
 
 session_start();
 
-$action = isset($_GET['action']) ? $_GET['action'] : 'default';
+$action = isset($_GET['action']) ? $_GET['action'] : 'home';
+
+$_SESSION["CURRENT_PAGE"] = ucfirst($action);
+require_once '../app/views/{templates}/header.php';
 
 switch ($action) {
     case 'register':
@@ -37,5 +40,7 @@ switch ($action) {
         // Mengarahkan ke halaman default dengan pilihan untuk login atau register
         require_once '../app/views/auth/welcome.php';
 }
+
+require_once '../app/views/{templates}/footer.php';
 
 ?>
