@@ -1,7 +1,7 @@
     <h1>Register</h1>
-    <form action="index.php?action=register_process" method="post">
+    <form action="" method="post">
         <label for="nama">Nama:</label>
-        <input type="text" id="nama" name="nama" required>
+        <input type="text" id="nama" name="nama" required autofocus>
 
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required>

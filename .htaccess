@@ -1,0 +1,12 @@
+RewriteEngine on
+RewriteBase /
+
+# If the request is not a file or directory
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Capture the subdirectory dynamically using regex
+RewriteCond %{REQUEST_URI} ^/(.*?)/
+
+# Rewrite the URL with captured subdirectory and URI parameter
+RewriteRule ^(.*)$ /%1/index.php?URI=$1 [L,QSA]

@@ -1,7 +1,7 @@
     <h1>Login</h1>
-    <form action="index.php?action=login_process" method="post">
+    <form action="" method="post">
         <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
+        <input type="email" id="email" name="email" required autofocus>
 
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required>

@@ -107,6 +107,10 @@ switch ($action) {
         break;
         
     // Tambahkan kasus routing lainnya di sini
+    case 'schedule':
+        require_once '../app/views/schedule/index.php';
+        break;
+
     default:
         // Mengarahkan ke halaman default dengan pilihan untuk login atau register
         require_once '../app/views/auth/welcome.php';
