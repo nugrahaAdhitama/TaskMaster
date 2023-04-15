@@ -8,11 +8,12 @@ class DashboardController {
 
     public function __construct($app) {
         $this->app = $app;
-        $this->page = $app->uri;
+        $this->page = $app->view;
     }
 
     public function index() {
-        return $this->app->view($this->page);
+        $data["title"] = APP_NAME.' - Dashboard';
+        return $this->app->view($this->page, $data);
     }
 
 }

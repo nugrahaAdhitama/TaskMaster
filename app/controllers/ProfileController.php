@@ -8,11 +8,12 @@ class ProfileController {
 
     public function __construct($app) {
         $this->app = $app;
-        $this->page = $app->uri;
+        $this->page = $app->view;
     }
 
     public function index() {
-        return $this->app->view($this->page);
+        $data["title"] = APP_NAME." - Profile";
+        return $this->app->view($this->page, $data);
     }
 
     public function edit() {
@@ -37,7 +38,8 @@ class ProfileController {
             }
         }
 
-        return $this->app->view($this->page);
+        $data["title"] = APP_NAME." - Edit Profile";
+        return $this->app->view($this->page, $data);
     }
 
     public function delete() {
@@ -60,7 +62,8 @@ class ProfileController {
             }
         }
 
-        return $this->app->view($this->page);
+        $data["title"] = APP_NAME." - Delete Account";
+        return $this->app->view($this->page, $data);
     }
 
 }

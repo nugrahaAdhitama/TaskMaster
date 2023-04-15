@@ -8,3 +8,5 @@
 
         <button type="submit">Login</button>
     </form>
+    <br>
+    <a href="<?= BASE_URI ?>">Back to Home</a>

@@ -1,11 +1,17 @@
 <?php
-require 'config/database.php';
-require 'config/App.php';
 
-define('APP_NAME', 'Taskmaster');
-define('URI_PARAM', 'URI');
-define('BASE_URI', '/taskmaster/');
+require 'config/Database.php';
+require 'config/App.php';
+require 'vendor/autoload.php';
 
 session_start();
 
-$app = new App($conn);
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+define('APP_NAME', $_ENV["APP_NAME"]);
+define('URI_PARAM', $_ENV["APP_URI_PARAM"]);
+define('BASE_URI', $_ENV["APP_BASE_URI"]);
+
+$db = new Database;
+$app = new App($db->conn);

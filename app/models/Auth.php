@@ -63,8 +63,8 @@ class Auth {
     }
 
     public function hashPassword($password) {
-        $front_salt = "s3FE2Geoxo9+(L3F";
-        $back_salt = "QN3+*5nHkP=RtU=D";
+        $front_salt = $_ENV["FRONT_SALT"];
+        $back_salt  = $_ENV["BACK_SALT"];
         $salted_password = $front_salt . $password . $back_salt;
         return hash('sha256', $salted_password);
     }

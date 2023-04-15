@@ -8,17 +8,18 @@ class AuthController {
 
     public function __construct($app) {
         $this->app = $app;
-        $this->page = $app->uri;
+        $this->page = $app->view;
     }
 
     public function index() {
-        return $this->app->view($this->page);
+        $data["title"] = APP_NAME." - Welcome";
+        return $this->app->view($this->page, $data);
     }
 
     public function register() {
-        $nama = @$_POST['nama'];
-        $email = @$_POST['email'];
-        $password = @$_POST['password'];
+        $nama       = @$_POST['nama'];
+        $email      = @$_POST['email'];
+        $password   = @$_POST['password'];
 
         if ( isset($nama) && isset($email) && isset($password) ) {
             $user = $this->app->model($this->model);
@@ -36,11 +37,6 @@ class AuthController {
 
         return $this->app->view($this->page);
     }
-    
-    // public function isEmailRegistered($email) {
-    //     $user = $this->app->model($this->model);
-    //     return $user->getUserByEmail($email) !== false;
-    // }
 
     public function login() {
         $email = @$_POST['email'];
@@ -69,52 +65,5 @@ class AuthController {
         unset($_SESSION['user']);
         return header("Location: ".BASE_URI."auth/login");
     }
-
-    public function readProfile($email) {
-        $user = $this->app->model($this->model);
-        return $user->getUserByEmail($email);
-    }
-    
-    // public function updateProfile($email, $nama, $password) {
-    //     $user = $this->app->model($this->model);
-    //     $user_data = $user->getUserByEmail($email);
-    //     if ($user_data === false) {
-    //         return false;
-    //     }
-    
-    //     if (!empty($nama)) {
-    //         $user_data['nama'] = $nama;
-    //     }
-    
-    //     if (!empty($password)) {
-    //         $user_data['password'] = $user->hashPassword($password);
-    //     }
-    
-    //     $query = "UPDATE users SET nama = :nama, password = :password WHERE email = :email";
-    //     $stmt = $this->app->db->prepare($query);
-    
-    //     $stmt->bindParam(':nama', $user_data['nama']);
-    //     $stmt->bindParam(':password', $user_data['password']);
-    //     $stmt->bindParam(':email', $email);
-    
-    //     return $stmt->execute();
-    // }
-    
-    // public function deleteProfile($email) {
-    //     $user = $this->app->model($this->model);
-    //     $user_data = $user->getUserByEmail($email);
-    //     if ($user_data === false) {
-    //         return false;
-    //     }
-    
-    //     $query = "DELETE FROM users WHERE email = :email";
-    //     $stmt = $this->app->db->prepare($query);
-    
-    //     $stmt->bindParam(':email', $email);
-    
-    //     return $stmt->execute();
-    // }
     
 }
-
-?>

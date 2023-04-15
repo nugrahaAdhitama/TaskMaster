@@ -2,3 +2,4 @@
     <p>You are now logged in.</p>
     <a href="auth/logout">Logout</a>
     <a href="profile">Profile</a>
+    <a href="schedule">Schedule</a>
