@@ -1,12 +1,19 @@
 RewriteEngine on
 RewriteBase /
 
-# If the request is not a file or directory
+# If the request is not a file or directory, except for index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !index\.php
 
 # Capture the subdirectory dynamically using regex
 RewriteCond %{REQUEST_URI} ^/(.*?)/
 
 # Rewrite the URL with captured subdirectory and URI parameter
 RewriteRule ^(.*)$ /%1/index.php?URI=$1 [L,QSA]
+
+# Block access to specific files and directories
+RewriteRule ^(app|config|README\.md) - [F]
+
+# Allow direct access to the assets directory
+RewriteRule ^(assets)($|/) - [L]
