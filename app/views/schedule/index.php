@@ -5,13 +5,21 @@
 
 <table>
     <tr>
-        <th>#</th>
         <th>Course</th>
+        <th>Started At</th>
+        <th>Ended At</th>
+        <th>Day</th>
+        <th>Room</th>
+        <th>Notes</th>
     </tr>
-    <?php foreach ( $courses as $no => $course ) : ?>
+    <?php foreach ( $schedules as $schedule ) : ?>
     <tr>
-        <td><?= $no ?></td>
-        <td><?= $course ?></td>
+        <td><?= $schedule["course"] ?></td>
+        <td><?= $schedule["started_at"] ?></td>
+        <td><?= $schedule["ended_at"] ?></td>
+        <td><?= $schedule["day"] ?></td>
+        <td><?= $schedule["room"] ?></td>
+        <td><?= $schedule["notes"] ?></td>
     </tr>
     <?php endforeach; ?>
 </table>
