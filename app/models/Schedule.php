@@ -72,7 +72,7 @@ class Schedule {
         $stmt = $this->db->prepare($query);
 
         $stmt->bindParam(':id', $id);
-        $stmt->bindParam(':userid', $user_id);
+        $stmt->bindParam(':user_id', $user_id);
     
         foreach ($columns as $index => $column) {
             $stmt->bindParam(':' . $column, $data[$index]);
