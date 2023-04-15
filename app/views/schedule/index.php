@@ -11,6 +11,7 @@
         <th>Day</th>
         <th>Room</th>
         <th>Notes</th>
+        <th>Actions</th>
     </tr>
     <?php foreach ( $schedules as $schedule ) : ?>
     <tr>
@@ -20,6 +21,10 @@
         <td><?= $schedule["day"] ?></td>
         <td><?= $schedule["room"] ?></td>
         <td><?= $schedule["notes"] ?></td>
+        <td>
+            <a href="<?= BASE_URI ?>schedule/edit/<?= $schedule["id"] ?>"?>edit</a>
+            <a href="<?= BASE_URI ?>schedule/delete/<?= $schedule["id"] ?>">delete</a>
+        </td>
     </tr>
     <?php endforeach; ?>
 </table>

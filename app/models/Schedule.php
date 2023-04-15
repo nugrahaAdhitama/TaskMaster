@@ -9,10 +9,23 @@ class Schedule {
     }
 
     public function getAllSchedules() {
-        $query = "SELECT s.id, u.nama, s.course, s.started_at, s.ended_at, s.day, s.room, s.notes FROM $this->table s INNER JOIN users u ON s.user_id=u.id";
+        $query = "SELECT * FROM $this->table";
         $stmt = $this->db->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll();
+    }
+
+    public function findScheduleByID(string $id) {
+        $query = "SELECT * FROM $this->table WHERE id = $id";
+        $stmt = $this->db->prepare($query);
+        return ( $stmt->execute() ? true : false );
+    }
+
+    public function getScheduleByID(string $id) {
+        $query = "SELECT * FROM $this->table WHERE id = $id";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function addNewSchedule(array $columns, array $data) {
@@ -34,8 +47,29 @@ class Schedule {
     }
         
 
-    public function editSchedule() {
+    public function editScheduleByID(string $id, array $columns, array $data) {
+        $placeholders = implode(', ', array_map(function($col) { return "$col = :$col"; }, $columns));
+    
+        $query = "UPDATE $this->table SET $placeholders WHERE id = $id";
+        $stmt = $this->db->prepare($query);
+    
+        foreach ($columns as $index => $column) {
+            $stmt->bindParam(':' . $column, $data[$index]);
+        }
+    
+        return $stmt->execute();
+    }
 
+    public function deleteScheduleByID(string $id) {
+        $schedule = $this->findScheduleByID($id);
+        if ( $schedule === false ) { return false; }
+    
+        $query = "DELETE FROM $this->table WHERE id = :id";
+        $stmt = $this->db->prepare($query);
+    
+        $stmt->bindParam(':id', $id);
+    
+        return $stmt->execute();
     }
 
     private function generateUUID() {

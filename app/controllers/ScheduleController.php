@@ -55,7 +55,48 @@ class ScheduleController {
     }
 
     public function edit() {
+        $fields["required"] = ['course', 'started_at', 'ended_at', 'day', 'room'];
+        $fields["optional"] = ['notes'];
+        $submit = @$_POST['submit'];
+        $data = [];
+        $id = @$this->app->params[0];
+        $model = $this->app->model($this->model);
+
+        if ( isset($submit) ) {
+            if ( !isset($id) || @$id == '' ) {
+                echo "ERROR: Schedule ID is not specified!";
+                return header("Refresh: 2; URL=".BASE_URI."schedule");
+            }
+
+            $columns = array_values(array_merge($fields["required"], $fields["optional"]));
+            foreach ( $columns as $index => $column ) { $data[$index] = @$_POST[$column]; }
+
+            $editSchedule = $model->editScheduleByID($id, $columns, $data);
+
+            echo ( $editSchedule ? "SUCCESS: Schedule is updated!" : "ERROR: Failed to update schedule!" );
+            header("Refresh: 2; URL=".BASE_URI."schedule");
+            exit();
+        }
+
+        $data["schedules"] = $model->getScheduleByID($id);
         $data["title"] = APP_NAME." - Edit Schedule";
+        return $this->app->view($this->page, $data);
+    }
+
+    public function delete() {
+        $id = @$this->app->params[0];
+        $submit = @$_POST["submit"];
+
+        if ( isset($submit) && isset($id) ) {
+            $model = $this->app->model($this->model);
+            $deleteSchedule = $model->deleteScheduleByID($id);
+            
+            echo ( $deleteSchedule ? "SUCCESS: Schedule `$id` is deleted!" : "ERROR: Failed to delete schedule `$id`!" );
+            header("Refresh: 2; URL=".BASE_URI."schedule");
+            exit();
+        }
+
+        $data["title"] = APP_NAME." - Delete Schedule";
         return $this->app->view($this->page, $data);
     }
 }

@@ -3,7 +3,7 @@ class App {
     private $conn;
     private $controller = 'Auth';
     private $method = 'index';
-    private $params = [];
+    public $params = [];
     private $data = [];
     public $view;
 
