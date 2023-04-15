@@ -78,23 +78,31 @@ class ScheduleController {
             exit();
         }
 
-        $data["schedules"] = $model->getScheduleByID($id);
+        if ( $id === NULL ) { $id = ''; }
+        $schedules = $model->getScheduleByID($id);
+        if ( !$schedules ) { exit("<pre>ERROR: Schedule `$id` not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
+
+        $data["schedules"] = $schedules;
         $data["title"] = APP_NAME." - Edit Schedule";
         return $this->app->view($this->page, $data);
     }
 
     public function delete() {
+        $model = $this->app->model($this->model);
         $id = @$this->app->params[0];
         $submit = @$_POST["submit"];
 
         if ( isset($submit) && isset($id) ) {
-            $model = $this->app->model($this->model);
             $deleteSchedule = $model->deleteScheduleByID($id);
             
             echo ( $deleteSchedule ? "SUCCESS: Schedule `$id` is deleted!" : "ERROR: Failed to delete schedule `$id`!" );
             header("Refresh: 2; URL=".BASE_URI."schedule");
             exit();
         }
+
+        if ( $id === NULL ) { $id = ''; }
+        $schedules = $model->getScheduleByID($id);
+        if ( !$schedules ) { exit("<pre>ERROR: Schedule `$id` not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
 
         $data["title"] = APP_NAME." - Delete Schedule";
         return $this->app->view($this->page, $data);

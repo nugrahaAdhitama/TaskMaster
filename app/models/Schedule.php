@@ -22,10 +22,11 @@ class Schedule {
     }
 
     public function getScheduleByID(string $id) {
-        $query = "SELECT * FROM $this->table WHERE id = $id";
+        $query = "SELECT * FROM $this->table WHERE id = :id";
         $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':id', $id);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return ( $stmt->rowCount() > 0 ? $stmt->fetch(PDO::FETCH_ASSOC) : false );
     }
 
     public function addNewSchedule(array $columns, array $data) {
