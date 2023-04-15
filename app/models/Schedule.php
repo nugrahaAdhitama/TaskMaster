@@ -15,22 +15,24 @@ class Schedule {
         return $stmt->fetchAll();
     }
 
-    public function addNewSchedule(mixed $columns, mixed $data) {
-        $params = ':'.implode(', :', $columns);
+    public function addNewSchedule(array $columns, array $data) {
+        $params = ':' . implode(', :', $columns);
         $column = implode(', ', $columns);
-
+    
         $uuid = $this->generateUUID();
         $query = "INSERT INTO $this->table (id, user_id, $column) VALUES (:id, :user_id, $params)";
         $stmt = $this->db->prepare($query);
-        exit(var_dump($stmt));
-
-        $params = explode(', ', $params);
+    
         $stmt->bindParam(':id', $uuid);
         $stmt->bindParam(':user_id', $_SESSION["user"]["id"]);
-        foreach ( $data as $index => $value ) { $stmt->bindParam($params[$index], $value); }
-
-        return ( $stmt->execute() ? true : false );
+    
+        foreach ($columns as $index => $column) {
+            $stmt->bindParam(':' . $column, $data[$index]);
+        }
+    
+        return ($stmt->execute() ? true : false);
     }
+        
 
     public function editSchedule() {
 
