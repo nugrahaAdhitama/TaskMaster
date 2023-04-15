@@ -5,8 +5,6 @@
 
 <table>
     <tr>
-        <th>ID</th>
-        <th>Username</th>
         <th>Course</th>
         <th>Started At</th>
         <th>Ended At</th>
@@ -16,8 +14,6 @@
     </tr>
     <?php foreach ( $schedules as $schedule ) : ?>
     <tr>
-        <td><?= $schedule["id"] ?></td>
-        <td><?= $schedule["nama"] ?></td>
         <td><?= $schedule["course"] ?></td>
         <td><?= $schedule["started_at"] ?></td>
         <td><?= $schedule["ended_at"] ?></td>
