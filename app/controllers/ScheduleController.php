@@ -13,7 +13,7 @@ class ScheduleController {
 
     public function index() {
         $model = $this->app->model($this->model);
-        $data["courses"] = $model->getAllCourses();
+        $data["schedules"] = $model->getAllSchedules();
         $data["title"] = APP_NAME." - Schedule";
         return $this->app->view($this->page, $data);
     }

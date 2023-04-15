@@ -8,15 +8,8 @@ class Schedule {
         $this->db = $db;
     }
 
-    public function getAllSchedule() {
-        $query = "SELECT * FROM $this->table";
-        $stmt = $this->db->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll();
-    }
-
-    public function getAllCourses() {
-        $query = "SELECT course FROM $this->table";
+    public function getAllSchedules() {
+        $query = "SELECT s.id, u.nama, s.course, s.started_at, s.ended_at, s.day, s.room, s.notes FROM $this->table s INNER JOIN users u ON s.user_id=u.id";
         $stmt = $this->db->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll();
@@ -29,6 +22,7 @@ class Schedule {
         $uuid = $this->generateUUID();
         $query = "INSERT INTO $this->table (id, user_id, $column) VALUES (:id, :user_id, $params)";
         $stmt = $this->db->prepare($query);
+        exit(var_dump($stmt));
 
         $params = explode(', ', $params);
         $stmt->bindParam(':id', $uuid);
