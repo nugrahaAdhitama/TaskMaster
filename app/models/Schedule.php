@@ -29,6 +29,23 @@ class Schedule {
         return ( $stmt->rowCount() > 0 ? $stmt->fetch(PDO::FETCH_ASSOC) : false );
     }
 
+    public function getScheduleByUserID(string $user_id) {
+        $query = "SELECT * FROM $this->table WHERE user_id = :user_id";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function getScheduleByOwner(string $id, string $user_id) {
+        $query = "SELECT * FROM $this->table WHERE id = :id AND user_id = :user_id";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':id', $id);
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->execute();
+        return ( $stmt->rowCount() > 0 ? $stmt->fetch(PDO::FETCH_ASSOC) : false );
+    }
+
     public function addNewSchedule(array $columns, array $data) {
         $params = ':' . implode(', :', $columns);
         $column = implode(', ', $columns);
@@ -48,11 +65,14 @@ class Schedule {
     }
         
 
-    public function editScheduleByID(string $id, array $columns, array $data) {
+    public function editSchedule(string $id, string $user_id, array $columns, array $data) {
         $placeholders = implode(', ', array_map(function($col) { return "$col = :$col"; }, $columns));
     
-        $query = "UPDATE $this->table SET $placeholders WHERE id = $id";
+        $query = "UPDATE $this->table SET $placeholders WHERE id = :id AND user_id = :user_id";
         $stmt = $this->db->prepare($query);
+
+        $stmt->bindParam(':id', $id);
+        $stmt->bindParam(':userid', $user_id);
     
         foreach ($columns as $index => $column) {
             $stmt->bindParam(':' . $column, $data[$index]);

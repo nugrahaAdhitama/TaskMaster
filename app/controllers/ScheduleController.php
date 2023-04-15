@@ -13,7 +13,7 @@ class ScheduleController {
 
     public function index() {
         $model = $this->app->model($this->model);
-        $data["schedules"] = $model->getAllSchedules();
+        $data["schedules"] = $model->getScheduleByUserID($_SESSION['user']['id']);
         $data["title"] = APP_NAME." - Schedule";
         return $this->app->view($this->page, $data);
     }
@@ -60,7 +60,12 @@ class ScheduleController {
         $submit = @$_POST['submit'];
         $data = [];
         $id = @$this->app->params[0];
+        $user_id = $_SESSION['user']['id'];
         $model = $this->app->model($this->model);
+
+        if ( $id === NULL ) { $id = ''; }
+        $schedules = $model->getScheduleByOwner($id, $user_id);
+        if ( !$schedules ) { exit("<pre>ERROR: Schedule `$id` not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
 
         if ( isset($submit) ) {
             if ( !isset($id) || @$id == '' ) {
@@ -71,16 +76,12 @@ class ScheduleController {
             $columns = array_values(array_merge($fields["required"], $fields["optional"]));
             foreach ( $columns as $index => $column ) { $data[$index] = @$_POST[$column]; }
 
-            $editSchedule = $model->editScheduleByID($id, $columns, $data);
+            $editSchedule = $model->editSchedule($id, $user_id, $columns, $data);
 
             echo ( $editSchedule ? "SUCCESS: Schedule is updated!" : "ERROR: Failed to update schedule!" );
             header("Refresh: 2; URL=".BASE_URI."schedule");
             exit();
         }
-
-        if ( $id === NULL ) { $id = ''; }
-        $schedules = $model->getScheduleByID($id);
-        if ( !$schedules ) { exit("<pre>ERROR: Schedule `$id` not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
 
         $data["schedules"] = $schedules;
         $data["title"] = APP_NAME." - Edit Schedule";
@@ -90,7 +91,12 @@ class ScheduleController {
     public function delete() {
         $model = $this->app->model($this->model);
         $id = @$this->app->params[0];
+        $user_id = $_SESSION['user']['id'];
         $submit = @$_POST["submit"];
+
+        if ( $id === NULL ) { $id = ''; }
+        $schedules = $model->getScheduleByOwner($id, $user_id);
+        if ( !$schedules ) { exit("<pre>ERROR: Schedule `$id` not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
 
         if ( isset($submit) && isset($id) ) {
             $deleteSchedule = $model->deleteScheduleByID($id);
@@ -99,10 +105,6 @@ class ScheduleController {
             header("Refresh: 2; URL=".BASE_URI."schedule");
             exit();
         }
-
-        if ( $id === NULL ) { $id = ''; }
-        $schedules = $model->getScheduleByID($id);
-        if ( !$schedules ) { exit("<pre>ERROR: Schedule `$id` not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
 
         $data["title"] = APP_NAME." - Delete Schedule";
         return $this->app->view($this->page, $data);
