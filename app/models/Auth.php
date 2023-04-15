@@ -1,70 +1,55 @@
 <?php
 
-class User {
-    private $conn;
+class Auth {
+    protected $db;
+    protected $table = 'users';
 
     public function __construct($db) {
-        $this->conn = $db;
+        $this->db = $db;
     }
 
     public function register($nama, $email, $password) {
         $uuid = $this->generateUUID();
         $hashedPassword = $this->hashPassword($password);
 
-        $query = "INSERT INTO users (id, nama, email, password) VALUES (:id, :nama, :email, :password)";
-        $stmt = $this->conn->prepare($query);
+        $query = "INSERT INTO $this->table (id, nama, email, password) VALUES (:id, :nama, :email, :password)";
+        $stmt = $this->db->prepare($query);
 
         $stmt->bindParam(':id', $uuid);
         $stmt->bindParam(':nama', $nama);
         $stmt->bindParam(':email', $email);
         $stmt->bindParam(':password', $hashedPassword);
 
-        if ($stmt->execute()) {
-            return true;
-        } else {
-            return false;
-        }
+        return ( $stmt->execute() ? true : false );
     }
 
     public function read($id) {
-        $query = "SELECT * FROM users WHERE id = :id";
-        $stmt = $this->conn->prepare($query);
+        $query = "SELECT * FROM $this->table WHERE id = :id";
+        $stmt = $this->db->prepare($query);
     
         $stmt->bindParam(':id', $id);
-    
-        if ($stmt->execute()) {
-            return $stmt->fetch(PDO::FETCH_ASSOC);
-        } else {
-            return false;
-        }
+
+        return ( $stmt->execute() ? $stmt->fetch(PDO::FETCH_ASSOC) : false );
     }
     
     public function update($id, $data) {
-        $query = "UPDATE users SET nama = :nama, email = :email WHERE id = :id";
-        $stmt = $this->conn->prepare($query);
+        $query = "UPDATE $this->table SET nama = :nama, email = :email WHERE id = :id";
+        $stmt = $this->db->prepare($query);
     
         $stmt->bindParam(':id', $id);
         $stmt->bindParam(':nama', $data['nama']);
         $stmt->bindParam(':email', $data['email']);
-    
-        if ($stmt->execute()) {
-            return true;
-        } else {
-            return false;
-        }
+
+        return ( $stmt->execute() ? true : false );
     }
     
     public function delete($id) {
-        $query = "DELETE FROM users WHERE id = :id";
-        $stmt = $this->conn->prepare($query);
+        $query = "DELETE FROM $this->table WHERE id = :id";
+        $stmt = $this->db->prepare($query);
     
         $stmt->bindParam(':id', $id);
-    
-        if ($stmt->execute()) {
-            return true;
-        } else {
-            return false;
-        }
+
+        return ( $stmt->execute() ? true : false );
     }    
 
     private function generateUUID() {
@@ -78,8 +63,8 @@ class User {
     }
 
     public function hashPassword($password) {
-        $front_salt = "s3FE2Geoxo9+(L3F";
-        $back_salt = "QN3+*5nHkP=RtU=D";
+        $front_salt = $_ENV["FRONT_SALT"];
+        $back_salt  = $_ENV["BACK_SALT"];
         $salted_password = $front_salt . $password . $back_salt;
         return hash('sha256', $salted_password);
     }
@@ -87,36 +72,31 @@ class User {
     public function login($email, $password) {
         $hashedPassword = $this->hashPassword($password);
 
-        $query = "SELECT * FROM users WHERE email = :email AND password = :password";
-        $stmt = $this->conn->prepare($query);
+        $query = "SELECT * FROM $this->table WHERE email = :email AND password = :password";
+        $stmt = $this->db->prepare($query);
 
         $stmt->bindParam(':email', $email);
         $stmt->bindParam(':password', $hashedPassword);
 
         $stmt->execute();
 
-        if($stmt->rowCount() > 0) {
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $user;
-        } else {
-            return false;
-        }
+        return ( $stmt->rowCount() > 0 ? $stmt->fetch(PDO::FETCH_ASSOC) : false );
     }
 
     public function isEmailRegistered($email) {
-        $query = "SELECT COUNT(*) FROM users WHERE email = :email";
-        $stmt = $this->conn->prepare($query);
+        $query = "SELECT COUNT(*) FROM $this->table WHERE email = :email";
+        $stmt = $this->db->prepare($query);
     
         $stmt->bindParam(':email', $email);
         $stmt->execute();
     
         $count = $stmt->fetchColumn();
-        return $count > 0;
+        return $count == 1;
     }
 
     public function getUserByEmail($email) {
-        $query = "SELECT * FROM users WHERE email = :email";
-        $stmt = $this->conn->prepare($query);
+        $query = "SELECT * FROM $this->table WHERE email = :email";
+        $stmt = $this->db->prepare($query);
     
         $stmt->bindParam(':email', $email);
         $stmt->execute();
