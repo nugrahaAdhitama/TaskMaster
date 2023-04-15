@@ -1,7 +1,7 @@
 <?php
 
-require 'config/Database.php';
-require 'config/App.php';
+require 'app/core/Database.php';
+require 'app/core/App.php';
 require 'vendor/autoload.php';
 
 session_start();

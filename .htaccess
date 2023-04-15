@@ -1,7 +1,7 @@
 RewriteEngine on
 RewriteBase /
 
-# If the request is not a file or directory, except for index.php
+# If the request is not a file or directory, except for index.php and asses folder
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !index\.php
@@ -13,7 +13,7 @@ RewriteCond %{REQUEST_URI} ^/(.*?)/
 RewriteRule ^(.*)$ /%1/index.php?URI=$1 [L,QSA]
 
 # Block access to specific files and directories
-RewriteRule ^(app|config|README\.md) - [F]
+RewriteRule ^(app|sql|vendor|README|\.) - [F]
 
 # Allow direct access to the assets directory
 RewriteRule ^(assets)($|/) - [L]
