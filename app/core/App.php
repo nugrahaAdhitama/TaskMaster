@@ -1,64 +1,127 @@
 <?php
-class App {
-    private $conn;
-    private $controller = 'Auth';
-    private $method = 'index';
-    public $params = [];
-    private $data = [];
-    public $view;
 
-    public function __construct($db) {
-        $this->conn = $db;
-        $uri = explode('/', isset($_GET[URI_PARAM]) ? $_GET[URI_PARAM] : $this->controller);
+/**
+ * The App class is responsible for handling the request
+ * and routing it to the appropriate controller and method.
+ */
+class App {
+
+    /**
+     * The database connection object.
+     * 
+     * @var object
+     */
+    private object $conn;
+
+    /**
+     * The default controller to use.
+     * 
+     * @var string
+     */
+    private string $controller = 'Auth';
+
+    /**
+     * The default method to use.
+     * 
+     * @var string
+     */
+    private string $method = 'index';
+
+    /**
+     * The parameters from the URI.
+     * 
+     * @var array
+     */
+    public array $params = [];
+
+    /**
+     * The name of the view to display.
+     * 
+     * @var string
+     */
+    public string $view;
+
+    /**
+     * The data to be passed to the view.
+     * 
+     * @var array
+     */
+    private array $data = [];
+
+    /**
+     * The constructor for the App class.
+     * 
+     * @param object $db The database connection object.
+     */
+    public function __construct(object $db) {
+        $uri = explode('/', $_GET[URI_PARAM] ?? $this->controller);
         
-        $this->controller = ucfirst(!empty($uri[0]) ? $uri[0] : $this->controller);
-        $this->method = !empty($uri[1]) ? $uri[1] : $this->method;
+        $this->conn = $db;
+        $this->controller = ucfirst($uri[0] ?: $this->controller);
+        $this->method = @$uri[1] ?: $this->method;
         $this->params = array_slice($uri, 2);
         $this->view = "$this->controller/$this->method";
-        
+
         $this->controller($this->controller);
     }
 
+    /**
+     * Load the specified controller.
+     * 
+     * @param string $name The name of the controller to load.
+     * @return void
+     */
     public function controller(string $name) {
-        $controller = $name."Controller";
+        $controller = "{$name}Controller";
         $file = "app/controllers/$controller.php";
-        if ( !file_exists($file) ) {
-            $this->data["title"] = "Page Not Found";
-            $this->view('{templates}/errors/404');
-            echo "<pre>Controller `$name` does not exist!</pre>";
-            return;
-        }
+    
+        if ( !file_exists($file) ) { exit("<pre>Controller `$name` does not exist!</pre>"); }
+
+        if ( $this->controller === 'Auth' && isset($_SESSION['user']) ) { header("Location: ".BASE_URI."dashboard"); }
+        if ( $this->controller !== 'Auth' && !isset($_SESSION['user']) ) { header("Location: ".BASE_URI."auth/login"); }
+    
         include $file;
         $controller = new $controller($this);
-
-        if ( $this->controller == 'Auth' && isset($_SESSION['user']) ) { header("Location: ".BASE_URI."dashboard"); }
-        if ( $this->controller != 'Auth' && !isset($_SESSION['user']) ) { header("Location: ".BASE_URI."auth/login"); }
-
-        if ( method_exists($controller, $this->method) ) {
-            $this->data["title"] = APP_NAME.($this->method == 'index'  ? '' : ' - '.ucwords(str_replace('_', ' ', $this->method)));
-            call_user_func_array([$controller, $this->method], $this->params);
-        } else {
-            $this->data["title"] = "Page Not Found";
-            $this->view('{templates}/errors/404');
-            echo "<pre>Method `$this->method` does not exist!</pre>";
-        }
+    
+        $method = $this->method;
+        if ( !method_exists($controller, $method) ) { exit("<pre>Method `$method` does not exist!</pre>"); }
+    
+        $this->data["title"] = APP_NAME . ( $method === 'index' ? '' : ' - ' . ucwords(str_replace('_', ' ', $method)) );
+        call_user_func_array([$controller, $method], $this->params);
     }
+    
 
+    /**
+     * Load the specified model.
+     * 
+     * @param string $name The name of the model to load.
+     * @return void
+     */
     public function model(string $name) {
-        if ( file_exists("app/models/".$name.".php") ) {
-            include "app/models/".$name.".php";
+        $modelFile = "app/models/$name.php";
+        if ( file_exists($modelFile) ) {
+            include $modelFile;
             return new $name($this->conn);
-        } else {
-            echo "<pre>WARNING: Model `$name` not found!</pre>";
         }
+        exit("<pre>WARNING: Model file does not exist!</pre>");
     }
 
-    public function view(string $name, mixed $data = []) {
+    /**
+     * Load the specified view.
+     * 
+     * @param string $name The name of the view file to be rendered.
+     * @param array $data Optional associative array of data to be passed to the view.
+     * @return void
+     */
+    public function view(string $name, array $data = []) {
         $data = array_merge($this->data, $data);
         extract($data);
-
-        include "app/views/{templates}/header.php";
-        include "app/views/" . ( file_exists("app/views/$name.php") && is_file("app/views/$name.php") ? $name : "{templates}/errors/404" ) . ".php";
-        include "app/views/{templates}/footer.php";
+        $view = 'app/views/';
+    
+        $file = "$view$name.php";
+        if (!file_exists($file) || !is_file($file)) exit("<pre>ERROR: View file does not exist!</pre>");
+    
+        foreach (["{templates}/header.php", "$name.php", "{templates}/footer.php"] as $_) include "$view$_";
     }
+    
 }
