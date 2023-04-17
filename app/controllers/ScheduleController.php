@@ -2,29 +2,22 @@
 
 class ScheduleController {
 
-    private $app;
-    private $page;
-    private $model = 'Schedule';
-
-    public function __construct($app) {
-        $this->app = $app;
-        $this->page = $app->view;
-    }
+    public function __construct(private $app) {}
 
     public function index() {
-        $model = $this->app->model($this->model);
+        $model = $this->app->model('Schedule');
         $data["schedules"] = $model->getScheduleByUserID($_SESSION['user']['id']);
         $data["title"] = APP_NAME." - Schedule";
-        return $this->app->view($this->page, $data);
+        return $this->app->view('schedule/index', $data);
     }
 
     public function add() {
-        $fields["required"] = ['course', 'started_at', 'ended_at', 'day', 'room'];
-        $fields["optional"] = ['notes'];
-        $submit = @$_POST['submit'];
-        $data = [];
+        $fields = [
+            "required" => ['course', 'started_at', 'ended_at', 'day', 'room'],
+            "optional" => ['notes']
+        ];
     
-        if ( isset($submit) ) {
+        if ( isset($_POST['submit']) ) {
             $isValid = true;
             foreach ( $fields["required"] as $required ) {
                 if ( !isset($_POST[$required]) || empty($_POST[$required]) ) {
@@ -33,80 +26,70 @@ class ScheduleController {
                 }
             }
     
-            if (!$isValid) {
-                echo "WARNING: Failed to submit form due to a missing required field!";
-                header("Refresh: 2; URL=".BASE_URI."schedule/add");
-                exit();
+            if ( !$isValid ) {
+                echo "WARNING: Failed to submit form!: Missing required field!";
+                exit(header("Refresh: 2; URL=".BASE_URI."schedule/add"));
             }
     
-            $columns = array_values(array_merge($fields["required"], $fields["optional"]));
-            foreach ( $columns as $index => $column ) { $data[$index] = @$_POST[$column]; }
+            $model = $this->app->model('Schedule');
+            $addSchedule = $model->addNewSchedule(array_merge($fields["required"], $fields["optional"]), $_POST);
     
-            $model = $this->app->model($this->model);
-            $addSchedule = $model->addNewSchedule($columns, $data);
-    
-            echo ( $addSchedule ? "SUCCESS: New schedule is added!" : "ERROR: Failed to add a new schedule!" );
-            header("Refresh: 2; URL=".BASE_URI."schedule");
-            exit();
+            echo $addSchedule ? "SUCCESS: New schedule is added!" : "ERROR: Failed to add a new schedule!";
+            exit(header("Refresh: 2; URL=".BASE_URI."schedule"));
         }
     
         $data["title"] = APP_NAME." - Add Schedule";
-        return $this->app->view($this->page, $data);
+        return $this->app->view('schedule/add', $data);
     }
 
     public function edit() {
-        $fields["required"] = ['course', 'started_at', 'ended_at', 'day', 'room'];
-        $fields["optional"] = ['notes'];
-        $submit = @$_POST['submit'];
-        $data = [];
-        $id = @$this->app->params[0];
-        $user_id = $_SESSION['user']['id'];
-        $model = $this->app->model($this->model);
+        $fields     = [
+                    "required" => ['course', 'started_at', 'ended_at', 'day', 'room'],
+                    "optional" => ['notes']
+        ];
+        $id         = $this->app->params[0] ?? '';
+        $user_id    = $_SESSION['user']['id'];
+        $model      = $this->app->model('Schedule');
+        $schedules  = $model->getScheduleByOwner($id, $user_id);
+    
+        if ( !$schedules ) { exit("<pre>ERROR: Schedule not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
+    
+        if ( isset($_POST['submit'] )) {
+            $columns        = array_merge($fields['required'], $fields['optional']);
+            $data           = array_intersect_key($_POST, array_flip($columns));
 
-        if ( $id === NULL ) { $id = ''; }
-        $schedules = $model->getScheduleByOwner($id, $user_id);
-        if ( !$schedules ) { exit("<pre>ERROR: Schedule `$id` not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
-
-        if ( isset($submit) ) {
-            if ( !isset($id) || @$id == '' ) {
-                echo "ERROR: Schedule ID is not specified!";
-                return header("Refresh: 2; URL=".BASE_URI."schedule");
-            }
-
-            $columns = array_values(array_merge($fields["required"], $fields["optional"]));
-            foreach ( $columns as $index => $column ) { $data[$index] = @$_POST[$column]; }
-
-            $editSchedule = $model->editSchedule($id, $user_id, $columns, $data);
-
-            echo ( $editSchedule ? "SUCCESS: Schedule is updated!" : "ERROR: Failed to update schedule!" );
-            header("Refresh: 2; URL=".BASE_URI."schedule");
-            exit();
+            $editSchedule   = $id ? $model->editSchedule($id, $user_id, $data) : false;
+            $message        = $id ? ($editSchedule ? "SUCCESS: Schedule is updated!" : "ERROR: Failed to update schedule!")
+                                  : "ERROR: Schedule ID is not specified!";
+            exit($message.header("Refresh: 2; URL=".BASE_URI."schedule"));
         }
-
-        $data["schedules"] = $schedules;
-        $data["title"] = APP_NAME." - Edit Schedule";
-        return $this->app->view($this->page, $data);
+    
+        $data = [
+            "schedules" => $schedules,
+            "title" => APP_NAME." - Edit Schedule"
+        ];
+        return $this->app->view('schedule/edit', $data);
     }
+    
 
     public function delete() {
-        $model = $this->app->model($this->model);
-        $id = @$this->app->params[0];
-        $user_id = $_SESSION['user']['id'];
-        $submit = @$_POST["submit"];
-
-        if ( $id === NULL ) { $id = ''; }
+        $model      = $this->app->model('Schedule');
+        $id         = @$this->app->params[0] ?? '';
+        $user_id    = $_SESSION['user']['id'];
+        $isAccepted = $_SERVER["REQUEST_METHOD"] === 'POST';
+    
         $schedules = $model->getScheduleByOwner($id, $user_id);
-        if ( !$schedules ) { exit("<pre>ERROR: Schedule `$id` not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
-
-        if ( isset($submit) && isset($id) ) {
-            $deleteSchedule = $model->deleteScheduleByID($id);
-            
-            echo ( $deleteSchedule ? "SUCCESS: Schedule `$id` is deleted!" : "ERROR: Failed to delete schedule `$id`!" );
-            header("Refresh: 2; URL=".BASE_URI."schedule");
-            exit();
+        if ( !$schedules ) { exit("<pre>ERROR: Schedule not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
+    
+        if ( isset($_POST["submit"], $id ) && $isAccepted ) {
+            $isDeleted = $model->deleteScheduleByID($id);
+    
+            echo $isDeleted ? "SUCCESS: Schedule `$id` is deleted!" : "ERROR: Failed to delete schedule `$id`!";
+            exit(header("Refresh: 2; URL=".BASE_URI."schedule"));
         }
-
+    
         $data["title"] = APP_NAME." - Delete Schedule";
-        return $this->app->view($this->page, $data);
+        return $this->app->view('schedule/delete', $data);
     }
+    
 }

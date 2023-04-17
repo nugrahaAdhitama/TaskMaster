@@ -2,68 +2,47 @@
 
 class ProfileController {
 
-    private $app;
-    private $page;
-    private $model = 'Profile';
-
-    public function __construct($app) {
-        $this->app = $app;
-        $this->page = $app->view;
-    }
+    public function __construct(private $app) {}
 
     public function index() {
         $data["title"] = APP_NAME." - Profile";
-        return $this->app->view($this->page, $data);
+        return $this->app->view('profile/index', $data);
     }
 
     public function edit() {
-        $nama = @$_POST['nama'];
-        $password = @$_POST['password'];
+        $nama           = @$_POST['nama'];
+        $password       = @$_POST['password'];
+        $data["title"]  = APP_NAME." - Edit Profile";
 
         if ( isset($nama) && isset($password) ) {
             $profile = $this->app->model('Auth');
-            $profile = $this->app->model($this->model);
+            $profile = $this->app->model('Profile');
             $updated = $profile->updateProfile($_SESSION['user']['email'], $nama, $password);
-            if ($updated) {
-                // Update session data
-                $_SESSION['user']['nama'] = $nama;
-                echo "SUCCESS: Profile updated!";
-                header("Refresh: 2; URL=".BASE_URI."profile");
-                exit;
-            } else {
-                // Jika gagal mengupdate profil, arahkan kembali ke halaman edit profile
-                echo "ERROR: Failed to update profile!";
-                header("Refresh: 2; URL=".BASE_URI."profile/edit");
-                exit;
-            }
+            
+            if ( $updated ) { $_SESSION['user']['nama'] = $nama; }
+            echo $updated ? "SUCCESSl Profile updated!" : "ERROR: Failed to update profile!";
+            exit(header("Refresh: 2; URL=".BASE_URI,"profile/edit"));
         }
 
-        $data["title"] = APP_NAME." - Edit Profile";
-        return $this->app->view($this->page, $data);
+        return $this->app->view('profile/edit', $data);
     }
 
     public function delete() {
         $submit = @$_POST['submit'];
+        $data["title"] = APP_NAME." - Delete Account";
 
         if ( isset($submit) && $submit == 'yes') {
             $profile = $this->app->model('Auth');
-            $profile = $this->app->model($this->model);
-            $deleted = $profile->deleteProfile($_SESSION['user']['email']);
-            if ( $deleted ) {
-                unset($_SESSION['user']);
-                echo "SUCCESS: Account deleted!";
-                header("Refresh: 2; URL=".BASE_URI."auth/login");
-                exit;
-            } else {
-                // Jika gagal menghapus akun, arahkan kembali ke halaman profil
-                echo "ERROR: Failed to delete account!";
-                header("Refresh: 2; URL=".BASE_URI."profile");
-                exit;
-            }
+            $profile = $this->app->model('Profile');
+
+            $isDeleted = $profile->deleteProfile($_SESSION['user']['email']);
+
+            if ( $isDeleted ) { session_destroy(); }
+            echo $isDeleted ? "SUCCESS: Account deleted!" : "ERROR: Failed to delete account!";
+            exit(header("Refresh: 2; URL=".BASE_URI."profile"));
         }
 
-        $data["title"] = APP_NAME." - Delete Account";
-        return $this->app->view($this->page, $data);
+        return $this->app->view('profile/delete', $data);
     }
 
 }

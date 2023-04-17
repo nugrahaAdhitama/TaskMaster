@@ -6,7 +6,7 @@
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required>
 
-        <button type="submit">Login</button>
+        <button type="submit" id="submit" name="submit">Login</button>
     </form>
     <br>
     <a href="<?= BASE_URI ?>">Back to Home</a>

@@ -1,12 +1,10 @@
 <?php
 
 class Schedule {
-    private $db;
+
     private $table = 'schedules';
 
-    public function __construct($db) {
-        $this->db = $db;
-    }
+    public function __construct(private $db) {}
 
     public function getAllSchedules() {
         $query = "SELECT * FROM $this->table";
@@ -47,37 +45,39 @@ class Schedule {
     }
 
     public function addNewSchedule(array $columns, array $data) {
+        $uuid = $this->generateUUID();
+        while ($this->db->query("SELECT COUNT(*) FROM $this->table WHERE id='$uuid'")->fetchColumn()) {
+            $uuid = $this->generateUUID();
+        }
+
         $params = ':' . implode(', :', $columns);
         $column = implode(', ', $columns);
-    
-        $uuid = $this->generateUUID();
         $query = "INSERT INTO $this->table (id, user_id, $column) VALUES (:id, :user_id, $params)";
         $stmt = $this->db->prepare($query);
-    
+
         $stmt->bindParam(':id', $uuid);
         $stmt->bindParam(':user_id', $_SESSION["user"]["id"]);
-    
-        foreach ($columns as $index => $column) {
-            $stmt->bindParam(':' . $column, $data[$index]);
+
+        foreach ($columns as $column) {
+            $stmt->bindParam(":$column", $data[$column]);
         }
-    
-        return ($stmt->execute() ? true : false);
+
+        return $stmt->execute();
     }
         
+    public function editSchedule(string $id, string $user_id, array $data) {
+        $placeholders = implode(', ', array_map(function($col) { return "$col = :$col"; }, array_keys($data)));
 
-    public function editSchedule(string $id, string $user_id, array $columns, array $data) {
-        $placeholders = implode(', ', array_map(function($col) { return "$col = :$col"; }, $columns));
-    
         $query = "UPDATE $this->table SET $placeholders WHERE id = :id AND user_id = :user_id";
         $stmt = $this->db->prepare($query);
 
         $stmt->bindParam(':id', $id);
         $stmt->bindParam(':user_id', $user_id);
-    
-        foreach ($columns as $index => $column) {
-            $stmt->bindParam(':' . $column, $data[$index]);
+
+        foreach ($data as $param => $value) {
+            $stmt->bindValue(":$param", $value);
         }
-    
+
         return $stmt->execute();
     }
 

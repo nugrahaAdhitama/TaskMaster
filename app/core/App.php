@@ -77,8 +77,8 @@ class App {
     
         if ( !file_exists($file) ) { exit("<pre>Controller `$name` does not exist!</pre>"); }
 
-        if ( $this->controller === 'Auth' && isset($_SESSION['user']) ) { header("Location: ".BASE_URI."dashboard"); }
-        if ( $this->controller !== 'Auth' && !isset($_SESSION['user']) ) { header("Location: ".BASE_URI."auth/login"); }
+        if ( $this->controller === 'Auth' && isset($_SESSION["KEY"]) ) { header("Location: ".BASE_URI."dashboard"); }
+        if ( $this->controller !== 'Auth' && !isset($_SESSION["KEY"]) ) { header("Location: ".BASE_URI."auth/login"); }
     
         include $file;
         $controller = new $controller($this);
