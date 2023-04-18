@@ -81,4 +81,21 @@ class TaskController {
         $data["title"] = APP_NAME." - Delete Task";
         return $this->app->view('task/delete', $data);
     }
+
+    public function view() {
+        $this->app->allowParams();
+        $id = @$this->app->params[0] ?? '';
+        $user_id = $_SESSION['user']['id'];
+        $model = $this->app->model('Task');
+
+        $task = $model->getTaskByOwner($id, $user_id);
+        $task ?: exit("<pre>ERROR: Task not found!</pre><a href='".BASE_URI."task'>Back</a>");
+
+        $data = [
+            'task' => $task,
+            'title' => APP_NAME." - View Task"
+        ];
+
+        return $this->app->view('task/view', $data);
+    }
 }
