@@ -16,12 +16,13 @@ class ProfileController {
         $password       = @$_POST['password'];
         $data["title"]  = APP_NAME." - Edit Profile";
 
-        if ( isset($nama) && isset($password) ) {
+        if ( isset($_POST["submit"], $nama, $password) ) {
             $profile = $this->app->model('Auth');
             $profile = $this->app->model('Profile');
 
             $updated = $profile->updateProfile($_SESSION['user']['email'], $nama, $password);
             !$updated ?: $_SESSION['user']['nama'] = $nama;
+            
             Notification::alert($updated ? "SUCCESS: Profile updated!" : "ERROR: Failed to update profile!", "profile");
         }
 
@@ -36,11 +37,13 @@ class ProfileController {
             $profile = $this->app->model('Auth');
             $profile = $this->app->model('Profile');
 
-            $isDeleted = $profile->deleteProfile($_SESSION['user']['email']);
+            $deletedProfile = $profile->deleteProfile($_SESSION['user']['email']);
+            !$deletedProfile ?: session_destroy();
 
-            if ( $isDeleted ) { session_destroy(); }
-            echo $isDeleted ? "SUCCESS: Account deleted!" : "ERROR: Failed to delete account!";
-            exit(header("Refresh: 2; URL=".BASE_URI."profile"));
+            Notification::alert($deletedProfile?
+                "SUCCESS: Account deleted!" : "ERROR: Failed to delete account!",
+                "profile"
+            );
         }
 
         return $this->app->view('profile/delete', $data);

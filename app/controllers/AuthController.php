@@ -14,23 +14,18 @@ class AuthController {
     public function register() {
         if ( isset($_POST["submit"]) ) {
             $fields = ['nama', 'email', 'password'];
-            foreach ($fields as $field) {
-                if ( !array_key_exists($field, $_POST) || !$_POST[$field] ) {
-                    Notification::alert("ERROR: Invalid field submitted!", "auth/register");
-                }
-                $$field = $_POST[$field];
-            }
+            if ( array_filter(array_map(fn($f) => !array_key_exists($f, $_POST) || !$_POST[$f], $fields)) )
+                Notification::alert("ERROR: Invalid field submitted!", "auth/register");
+            foreach ($fields as $field) $$field = $_POST[$field];
 
             $user = $this->app->model('Auth');
-            if ( $user->isEmailRegistered($email) ) {
-                Notification::alert("WARNING: User `$email` is already registered!", "auth/register");
-            }
+            !$user->isEmailRegistered($email)?
+                :Notification::alert("WARNING: User `$email` is already registered!", "auth/register");
 
             $isRegistered = $user->register($nama, $email, $password);
 
             Notification::alert($isRegistered?
-                "SUCCESS: New user `$email` is registered!"
-                :"ERROR: Failed to register a new user!",
+                "SUCCESS: New user `$email` is registered!" : "ERROR: Failed to register a new user!",
                 "auth/login"
             );
         }
@@ -41,10 +36,9 @@ class AuthController {
     public function login() {
         $email       = @$_POST['email'];
         $password    = @$_POST['password'];
-        $isSubmitted = isset($_POST['submit']);
-        $isPosted    = $_SERVER['REQUEST_METHOD'] === 'POST';
+        $isAccepted  = $_SERVER['REQUEST_METHOD'] === 'POST';
 
-        if ( $isSubmitted && $isPosted && isset($email, $password) ) {
+        if ( $isAccepted && isset($_POST["submit"], $email, $password) ) {
             $user = $this->app->model('Auth')->login($email, $password);
             $user ?: Notification::alert("ERROR: Invalid email or password! Please try again.", "auth/login");
 

@@ -106,7 +106,6 @@ class App {
         if ( !method_exists($controller, $method) ) { exit("<pre>Method `$method` does not exist!</pre>"); }
 
         call_user_func_array([$controller, $method], $this->params);
-
     }
     
 

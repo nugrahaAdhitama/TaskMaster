@@ -19,19 +19,14 @@ class ScheduleController {
     }
 
     public function add() {
-        if ( isset($_POST['submit']) ) {
-            $isValid = true;
-            foreach ( $this->fields["required"] as $required ) {
-                if ( !isset($_POST[$required]) || empty($_POST[$required]) ) {
-                    $isValid = false;
-                    break;
-                }
-            }
+        $fields = $this->fields;
 
+        if ( isset($_POST['submit']) ) {
+            $isValid = !array_diff_key(array_flip($fields['required']), $_POST);
             $isValid ?: Notification::alert("WARNING: Failed to submit form!: Missing required fields!", "schedule/add");
     
             $model = $this->app->model('Schedule');
-            $addedSchedule = $model->addNewSchedule(array_merge($this->fields["required"], $this->fields["optional"]), $_POST);
+            $addedSchedule = $model->addNewSchedule(array_merge($fields["required"], $fields["optional"]), $_POST);
     
             Notification::alert($addedSchedule?
                 "SUCCESS: New schedule is added!" : "ERROR: Failed to add a new schedule!",
@@ -45,18 +40,19 @@ class ScheduleController {
 
     public function edit() {
         $this->app->allowParams();
+        $fields     = $this->fields;
         $id         = $this->app->params[0] ?? '';
         $user_id    = $_SESSION['user']['id'];
         $model      = $this->app->model('Schedule');
+
         $schedules  = $model->getScheduleByOwner($id, $user_id);
-    
-        if ( !$schedules ) { exit("<pre>ERROR: Schedule not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
+        $schedules ?: exit("<pre>ERROR: Schedule not found!</pre><a href='".BASE_URI."schedule'>Back</a>");
     
         if ( isset($_POST['submit'] )) {
-            $columns        = array_merge($this->fields['required'], $this->fields['optional']);
+            $columns        = array_merge($fields['required'], $fields['optional']);
             $data           = array_intersect_key($_POST, array_flip($columns));
 
-            $editedSchedule = $id ? $model->editSchedule($id, $user_id, $data) : false;
+            $editedSchedule = $id && $model->editSchedule($id, $user_id, $data);
 
             Notification::alert($editedSchedule?
                 "SUCCESS: Schedule is updated!" : "ERROR: Failed to update schedule!",
@@ -81,14 +77,13 @@ class ScheduleController {
         $isAccepted = $_SERVER["REQUEST_METHOD"] === 'POST';
     
         $schedules = $model->getScheduleByOwner($id, $user_id);
-        if ( !$schedules ) { exit("<pre>ERROR: Schedule not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
+        $schedules ?: exit("<pre>ERROR: Schedule not found!</pre><a href='".BASE_URI."schedule'>Back</a>");
     
         if ( isset($_POST["submit"], $id ) && $isAccepted ) {
             $deletedSchedule = $model->deleteScheduleByID($id);
 
             Notification::alert($deletedSchedule?
-                "SUCCESS: Schedule is deleted!" : "ERROR: Failed to delete schedule!",
-                "schedule"
+                "SUCCESS: Schedule is deleted!" : "ERROR: Failed to delete schedule!", "schedule"
             );
         }
     
