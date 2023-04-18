@@ -29,7 +29,11 @@ class Task {
     }
 
     public function getTaskByUserID(string $user_id) {
-        $query = "SELECT * FROM $this->table WHERE user_id = :user_id";
+        $query = "SELECT * FROM $this->table WHERE user_id = :user_id
+              UNION
+              SELECT tugas.* FROM $this->table
+              JOIN kelompok_tugas ON tugas.id = kelompok_tugas.tugas_id
+              WHERE kelompok_tugas.user_id = :user_id";
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(':user_id', $user_id);
         $stmt->execute();
@@ -92,6 +96,32 @@ class Task {
         $stmt->bindParam(':id', $id);
     
         return $stmt->execute();
+    }
+
+    public function getUserByEmailOrName(string $emailOrName) {
+        $query = "SELECT * FROM users WHERE email = :emailOrName OR nama = :emailOrName";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':emailOrName', $emailOrName);
+        $stmt->execute();
+    
+        return ($stmt->rowCount() > 0 ? $stmt->fetch(PDO::FETCH_ASSOC) : false);
+    }
+    
+    public function inviteFriendToTask(string $task_id, string $friend_id) {
+        $query = "INSERT INTO kelompok_tugas (tugas_id, user_id) VALUES (:task_id, :friend_id)";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':task_id', $task_id);
+        $stmt->bindParam(':friend_id', $friend_id);
+    
+        return $stmt->execute();
+    }
+
+    public function getTaskMembers(string $task_id) {
+        $query = "SELECT users.* FROM users JOIN kelompok_tugas ON users.id = kelompok_tugas.user_id WHERE kelompok_tugas.tugas_id = :task_id";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':task_id', $task_id);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     private function generateUUID() {

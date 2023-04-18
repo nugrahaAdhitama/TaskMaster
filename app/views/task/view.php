@@ -24,3 +24,17 @@
         <td><?= $task["deskripsi"] ?></td>
     </tr>
 </table>
+
+<h2>Members</h2>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+    </tr>
+    <?php foreach ($members as $member): ?>
+    <tr>
+        <td><?= $member["nama"] ?></td>
+        <td><?= $member["email"] ?></td>
+    </tr>
+    <?php endforeach; ?>
+</table>

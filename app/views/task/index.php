@@ -21,7 +21,7 @@
         <td><?= $task["deskripsi"] ?></td>
         <td>
             <a href="<?= BASE_URI ?>task/view/<?= $task["id"] ?>">view</a>
-            <a href="<?= BASE_URI ?>task/invite/<?= $task["id"] ?>"?>invite</a>
+            <a href="<?= BASE_URI ?>task/invite/<?= $task["id"] ?>">Invite</a>
             <a href="<?= BASE_URI ?>task/edit/<?= $task["id"] ?>"?>edit</a>
             <a href="<?= BASE_URI ?>task/delete/<?= $task["id"] ?>">delete</a>
         </td>

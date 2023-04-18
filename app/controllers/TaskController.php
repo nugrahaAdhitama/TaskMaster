@@ -89,6 +89,7 @@ class TaskController {
         $model = $this->app->model('Task');
 
         $task = $model->getTaskByOwner($id, $user_id);
+        $members = $model->getTaskMembers($id);
         $task ?: exit("<pre>ERROR: Task not found!</pre><a href='".BASE_URI."task'>Back</a>");
 
         $data = [
@@ -96,6 +97,45 @@ class TaskController {
             'title' => APP_NAME." - View Task"
         ];
 
-        return $this->app->view('task/view', $data);
+        return $this->app->view('task/view', ['task' => $task, 'members' => $members]);
+    }
+
+    public function invite() {
+        $this->app->allowParams();
+        $id = $this->app->params[0] ?? '';
+        $user_id = $_SESSION['user']['id'];
+        $model = $this->app->model('Task');
+    
+        $task = $model->getTaskByOwner($id, $user_id);
+        $task ?: exit("<pre>ERROR: Task not found!</pre><a href='".BASE_URI."task'>Back</a>");
+    
+        if ($task['tipe'] !== 'kelompok') {
+            Notification::alert("ERROR: Task type is not a group task!", "task");
+        }
+    
+        if (isset($_POST['submit'])) {
+            $friendEmailOrName = $_POST['friend'];
+    
+            $friend = $model->getUserByEmailOrName($friendEmailOrName);
+    
+            if (!$friend) {
+                echo "User tidak ditemukan";
+            } else {
+                $inviteResult = $model->inviteFriendToTask($id, $friend['id']);
+    
+                if ($inviteResult) {
+                    echo "Berhasil menambahkan {$friend['nama']} dalam tugas ini";
+                } else {
+                    echo "Gagal mengundang teman";
+                }
+            }
+        }
+    
+        $data = [
+            'task' => $task,
+            'title' => APP_NAME . " - Invite Friend"
+        ];
+    
+        return $this->app->view('task/invite', $data);
     }
 }
