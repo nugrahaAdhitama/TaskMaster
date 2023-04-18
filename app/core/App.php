@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Core;
+
 /**
  * The App class is responsible for handling the request
  * and routing it to the appropriate controller and method.
@@ -18,14 +20,14 @@ class App {
      * 
      * @var string
      */
-    private string $controller = 'Auth';
+    private string $controller;
 
     /**
      * The default method to use.
      * 
      * @var string
      */
-    private string $method = 'index';
+    private string $method;
 
     /**
      * The parameters from the URI.
@@ -35,13 +37,6 @@ class App {
     public array $params = [];
 
     /**
-     * The name of the view to display.
-     * 
-     * @var string
-     */
-    public string $view;
-
-    /**
      * The data to be passed to the view.
      * 
      * @var array
@@ -49,19 +44,39 @@ class App {
     private array $data = [];
 
     /**
+     * The default values from .env file.
+     *
+     * @var array
+     */
+    public array $default;
+
+    /**
      * The constructor for the App class.
      * 
      * @param object $db The database connection object.
      */
     public function __construct(object $db) {
-        $uri = explode('/', $_GET[URI_PARAM] ?? $this->controller);
-        
-        $this->conn = $db;
-        $this->controller = ucfirst($uri[0] ?: $this->controller);
-        $this->method = @$uri[1] ?: $this->method;
-        $this->params = array_slice($uri, 2);
-        $this->view = "$this->controller/$this->method";
+        define('APP_NAME', $_ENV["APP_NAME"]??'');
+        define('URI_PARAM', $_ENV["APP_URI_PARAM"]??'');
+        define('BASE_URI', $_ENV["APP_URI_BASE"]??'');
 
+        $this->default      = [
+            "controller"     => $_ENV["DEFAULT_CONTROLLER"]??'',
+            "method"         => $_ENV["DEFAULT_METHOD"]??'',
+            "controllerPath" => $_ENV["DEFAULT_PATH_CONTROLLER"]??'',
+            "modelPath"      => $_ENV["DEFAULT_PATH_MODEL"]??'',
+            "viewPath"       => $_ENV["DEFAULT_PATH_VIEW"]??'',
+            "authPage"       => $_ENV["DEFAULT_URI_AUTH"]??'',
+            "accessPage"     => $_ENV["DEFAULT_URI_ACCESS"]??''
+        ];
+
+        $uri = explode('/', $_GET[URI_PARAM] ?? $this->default["controller"]);
+        
+        $this->conn           = $db;
+        $this->controller     = $uri[0] ?: $this->default["controller"];
+        $this->method         = @$uri[1] ?: $this->default["method"];
+        $this->default["URI"] = $uri;
+        
         $this->controller($this->controller);
     }
 
@@ -72,22 +87,26 @@ class App {
      * @return void
      */
     public function controller(string $name) {
-        $controller = "{$name}Controller";
-        $file = "app/controllers/$controller.php";
+        $controllerName = ucfirst($name)."Controller";
+        $file = "{$this->default["controllerPath"]}$controllerName.php";
     
         if ( !file_exists($file) ) { exit("<pre>Controller `$name` does not exist!</pre>"); }
 
-        if ( $this->controller === 'Auth' && isset($_SESSION["KEY"]) ) { header("Location: ".BASE_URI."dashboard"); }
-        if ( $this->controller !== 'Auth' && !isset($_SESSION["KEY"]) ) { header("Location: ".BASE_URI."auth/login"); }
+        $defaultController = $this->default["controller"];
+        $isAuthorized = isset($_SESSION["KEY"]);
+
+        if ( $isAuthorized && $this->controller === $defaultController ) { header("Location: ".BASE_URI.$this->default["accessPage"]); }
+        if ( !$isAuthorized && $this->controller !== $defaultController ) { header("Location: ".BASE_URI.$this->default["authPage"]); }
     
         include $file;
-        $controller = new $controller($this);
+        $controller = new $controllerName($this);
     
         $method = $this->method;
-        if ( !method_exists($controller, $method) ) { exit("<pre>Method `$method` does not exist!</pre>"); }
-    
         $this->data["title"] = APP_NAME . ( $method === 'index' ? '' : ' - ' . ucwords(str_replace('_', ' ', $method)) );
+        if ( !method_exists($controller, $method) ) { exit("<pre>Method `$method` does not exist!</pre>"); }
+
         call_user_func_array([$controller, $method], $this->params);
+
     }
     
 
@@ -98,7 +117,8 @@ class App {
      * @return void
      */
     public function model(string $name) {
-        $modelFile = "app/models/$name.php";
+        $model = $this->default["modelPath"];
+        $modelFile = "$model$name.php";
         if ( file_exists($modelFile) ) {
             include $modelFile;
             return new $name($this->conn);
@@ -116,12 +136,21 @@ class App {
     public function view(string $name, array $data = []) {
         $data = array_merge($this->data, $data);
         extract($data);
-        $view = 'app/views/';
+        $view = $this->default["viewPath"];
     
         $file = "$view$name.php";
         if (!file_exists($file) || !is_file($file)) exit("<pre>ERROR: View file does not exist!</pre>");
     
         foreach (["{templates}/header.php", "$name.php", "{templates}/footer.php"] as $_) include "$view$_";
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return void
+     */
+    public function allowParams() {
+        return $this->params = array_slice($this->default["URI"], 2);
     }
     
 }

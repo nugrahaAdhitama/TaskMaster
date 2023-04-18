@@ -4,7 +4,7 @@ class Auth {
 
     protected $table = 'users';
 
-    public function __construct(private $db) {}
+    public function __construct(protected $db) {}
 
     public function register($nama, $email, $password) {
         $uuid = $this->generateUUID();
@@ -61,8 +61,8 @@ class Auth {
     }
 
     public function hashPassword($password) {
-        $front_salt = $_ENV["FRONT_SALT"];
-        $back_salt  = $_ENV["BACK_SALT"];
+        $front_salt = $_ENV["SALT_FRONT"]??'';
+        $back_salt  = $_ENV["SALT_BACK"]??'';
         $salted_password = $front_salt . $password . $back_salt;
         return hash('sha256', $salted_password);
     }

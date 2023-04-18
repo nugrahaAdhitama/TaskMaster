@@ -14,8 +14,9 @@ class Schedule {
     }
 
     public function findScheduleByID(string $id) {
-        $query = "SELECT * FROM $this->table WHERE id = $id";
+        $query = "SELECT * FROM $this->table WHERE id = :id";
         $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':id', $id);
         return ( $stmt->execute() ? true : false );
     }
 

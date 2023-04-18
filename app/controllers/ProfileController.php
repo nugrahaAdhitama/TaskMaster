@@ -1,5 +1,7 @@
 <?php
 
+use App\Core\Notification;
+
 class ProfileController {
 
     public function __construct(private $app) {}
@@ -17,11 +19,10 @@ class ProfileController {
         if ( isset($nama) && isset($password) ) {
             $profile = $this->app->model('Auth');
             $profile = $this->app->model('Profile');
+
             $updated = $profile->updateProfile($_SESSION['user']['email'], $nama, $password);
-            
-            if ( $updated ) { $_SESSION['user']['nama'] = $nama; }
-            echo $updated ? "SUCCESSl Profile updated!" : "ERROR: Failed to update profile!";
-            exit(header("Refresh: 2; URL=".BASE_URI,"profile/edit"));
+            !$updated ?: $_SESSION['user']['nama'] = $nama;
+            Notification::alert($updated ? "SUCCESS: Profile updated!" : "ERROR: Failed to update profile!", "profile");
         }
 
         return $this->app->view('profile/edit', $data);

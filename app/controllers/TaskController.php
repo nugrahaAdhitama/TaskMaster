@@ -1,5 +1,7 @@
 <?php
 
+use App\Core\Notification;
+
 class TaskController {
     public function __construct(private $app) {}
 
@@ -25,16 +27,12 @@ class TaskController {
                 }
             }
 
-            if( !$isValid ) {
-                echo "WARNING: Failed to submit form!: Missing required field!";
-                exit(header("Refresh: 2; URL=".BASE_URI."task/add"));
-            }
+            $isValid ?: Notification::alert("ERROR: Failed to submit form!: Missing required fields!", "task/add");
 
             $model = $this->app->model('Task');
-            $addTask = $model->addNewTask(array_merge($fileds['required'], $fileds['optional']), $_POST);
+            $addedTask = $model->addNewTask(array_merge($fileds['required'], $fileds['optional']), $_POST);
 
-            echo $addTask ? "SUCCESS: New task is added!" : "ERROR: Failed to add a new task!";
-            exit(header("Refresh: 2; URL=".BASE_URI."task"));
+            Notification::alert($addedTask ? "SUCCESS: New task is added!" : "ERROR: Failed to add a new task!", "task");
         }
 
         $data["title"] = APP_NAME." - Add Task";
@@ -42,6 +40,7 @@ class TaskController {
     }
 
     public function edit() {
+        $this->app->allowParams();
         $fields = [
             "required" => ['judul', 'deadline', 'status', 'tipe'],
             "optional" => ['deskripsi']
@@ -49,45 +48,41 @@ class TaskController {
         $id = $this->app->params[0] ?? '';
         $user_id = $_SESSION['user']['id'];
         $model = $this->app->model('Task');
-        $tasks = $model->getTaskByOwner($id, $user_id);
 
-        if( !$tasks ) {
-            exit("<pre>ERROR: Task not found!</pre><a href='".BASE_URI."task'>Back</a>");
-        }
+        $tasks = $model->getTaskByOwner($id, $user_id);
+        $tasks ?: exit("<pre>ERROR: Task not found!</pre><a href='".BASE_URI."task'>Back</a>");
 
         if ( isset($_POST['submit'] )) {
             $columns        = array_merge($fields['required'], $fields['optional']);
             $data           = array_intersect_key($_POST, array_flip($columns));
 
-            $editTask   = $id ? $model->editTask($id, $user_id, $data) : false;
-            $message        = $id ? ($editTask ? "SUCCESS: Task is updated!" : "ERROR: Failed to update task!")
-                                  : "ERROR: Task ID is not specified!";
-            exit($message.header("Refresh: 2; URL=".BASE_URI."schedule"));
+            $editedTask   = $id ? $model->editTask($id, $user_id, $data) : false;
+
+            Notification::alert($editedTask ? "SUCCESS: Task is updated!" : "ERROR: Failed to update task!", "schedule");
         }
 
         $data = [
             'tasks' => $tasks,
             'title' => APP_NAME." - Edit Task"
         ];
+
         return $this->app->view('task/edit', $data);
     }
 
     public function delete() {
+        $this->app->allowParams();
         $model = $this->app->model('Task');
         $id = @$this->app->params[0] ?? '';
         $user_id = $_SESSION['user']['id'];
         $isAccepted = $_SERVER["REQUEST_METHOD"] === "POST";
 
         $tasks = $model->getTaskByOwner($id, $user_id);
-        if ( !$tasks ) { 
-            exit("<pre>ERROR: Task not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); 
-        }
+        $tasks ?: exit("<pre>ERROR: Task not found!</pre><a href='".BASE_URI."schedule'>Back</a>");
 
         if( isset($_POST["submit"], $id) && $isAccepted ) {
-            $isDeleted = $model->deleteTaskByID($id);
+            $deletedTask = $model->deleteTaskByID($id);
 
-            echo $isDeleted ? "SUCCESS: Task `$id` is deleted!" : "ERROR: Failed to delte schedule `$id`!";
-            exit(header("Refresh: 2; URL=".BASE_URI."task"));
+            Notification::alert($deletedTask ? "SUCCESS: Task is deleted!" : "ERROR: Failed to delete task!", "task");
         }
 
         $data["title"] = APP_NAME." - Delete Task";

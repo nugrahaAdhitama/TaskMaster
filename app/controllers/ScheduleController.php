@@ -1,6 +1,13 @@
 <?php
 
+use App\Core\Notification;
+
 class ScheduleController {
+
+    private array $fields = [
+        "required" => ['course', 'started_at', 'ended_at', 'day', 'room'],
+        "optional" => ['notes']
+    ];
 
     public function __construct(private $app) {}
 
@@ -12,30 +19,24 @@ class ScheduleController {
     }
 
     public function add() {
-        $fields = [
-            "required" => ['course', 'started_at', 'ended_at', 'day', 'room'],
-            "optional" => ['notes']
-        ];
-    
         if ( isset($_POST['submit']) ) {
             $isValid = true;
-            foreach ( $fields["required"] as $required ) {
+            foreach ( $this->fields["required"] as $required ) {
                 if ( !isset($_POST[$required]) || empty($_POST[$required]) ) {
                     $isValid = false;
                     break;
                 }
             }
-    
-            if ( !$isValid ) {
-                echo "WARNING: Failed to submit form!: Missing required field!";
-                exit(header("Refresh: 2; URL=".BASE_URI."schedule/add"));
-            }
+
+            $isValid ?: Notification::alert("WARNING: Failed to submit form!: Missing required fields!", "schedule/add");
     
             $model = $this->app->model('Schedule');
-            $addSchedule = $model->addNewSchedule(array_merge($fields["required"], $fields["optional"]), $_POST);
+            $addedSchedule = $model->addNewSchedule(array_merge($this->fields["required"], $this->fields["optional"]), $_POST);
     
-            echo $addSchedule ? "SUCCESS: New schedule is added!" : "ERROR: Failed to add a new schedule!";
-            exit(header("Refresh: 2; URL=".BASE_URI."schedule"));
+            Notification::alert($addedSchedule?
+                "SUCCESS: New schedule is added!" : "ERROR: Failed to add a new schedule!",
+                "schedule"
+            );
         }
     
         $data["title"] = APP_NAME." - Add Schedule";
@@ -43,10 +44,7 @@ class ScheduleController {
     }
 
     public function edit() {
-        $fields     = [
-                    "required" => ['course', 'started_at', 'ended_at', 'day', 'room'],
-                    "optional" => ['notes']
-        ];
+        $this->app->allowParams();
         $id         = $this->app->params[0] ?? '';
         $user_id    = $_SESSION['user']['id'];
         $model      = $this->app->model('Schedule');
@@ -55,24 +53,28 @@ class ScheduleController {
         if ( !$schedules ) { exit("<pre>ERROR: Schedule not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
     
         if ( isset($_POST['submit'] )) {
-            $columns        = array_merge($fields['required'], $fields['optional']);
+            $columns        = array_merge($this->fields['required'], $this->fields['optional']);
             $data           = array_intersect_key($_POST, array_flip($columns));
 
-            $editSchedule   = $id ? $model->editSchedule($id, $user_id, $data) : false;
-            $message        = $id ? ($editSchedule ? "SUCCESS: Schedule is updated!" : "ERROR: Failed to update schedule!")
-                                  : "ERROR: Schedule ID is not specified!";
-            exit($message.header("Refresh: 2; URL=".BASE_URI."schedule"));
+            $editedSchedule = $id ? $model->editSchedule($id, $user_id, $data) : false;
+
+            Notification::alert($editedSchedule?
+                "SUCCESS: Schedule is updated!" : "ERROR: Failed to update schedule!",
+                "schedule"
+            );
         }
     
         $data = [
             "schedules" => $schedules,
             "title" => APP_NAME." - Edit Schedule"
         ];
+        
         return $this->app->view('schedule/edit', $data);
     }
     
 
     public function delete() {
+        $this->app->allowParams();
         $model      = $this->app->model('Schedule');
         $id         = @$this->app->params[0] ?? '';
         $user_id    = $_SESSION['user']['id'];
@@ -82,10 +84,12 @@ class ScheduleController {
         if ( !$schedules ) { exit("<pre>ERROR: Schedule not found!</pre><a href='".BASE_URI."schedule'>Back</a>"); }
     
         if ( isset($_POST["submit"], $id ) && $isAccepted ) {
-            $isDeleted = $model->deleteScheduleByID($id);
-    
-            echo $isDeleted ? "SUCCESS: Schedule `$id` is deleted!" : "ERROR: Failed to delete schedule `$id`!";
-            exit(header("Refresh: 2; URL=".BASE_URI."schedule"));
+            $deletedSchedule = $model->deleteScheduleByID($id);
+
+            Notification::alert($deletedSchedule?
+                "SUCCESS: Schedule is deleted!" : "ERROR: Failed to delete schedule!",
+                "schedule"
+            );
         }
     
         $data["title"] = APP_NAME." - Delete Schedule";

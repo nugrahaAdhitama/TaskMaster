@@ -1,5 +1,7 @@
 <?php
 
+use App\Core\Notification;
+
 class AuthController {
 
     public function __construct(private $app) {}
@@ -14,48 +16,43 @@ class AuthController {
             $fields = ['nama', 'email', 'password'];
             foreach ($fields as $field) {
                 if ( !array_key_exists($field, $_POST) || !$_POST[$field] ) {
-                    echo "ERROR: Invalid field submitted!";
-                    return header("Refresh: 2; URL=".BASE_URI."auth/register");
+                    Notification::alert("ERROR: Invalid field submitted!", "auth/register");
                 }
                 $$field = $_POST[$field];
             }
 
             $user = $this->app->model('Auth');
             if ( $user->isEmailRegistered($email) ) {
-                echo "WARNING: User `$email` is already registered!";
-                header("Refresh: 2; URL=".BASE_URI."auth/register");
-                return false;
+                Notification::alert("WARNING: User `$email` is already registered!", "auth/register");
             }
 
             $isRegistered = $user->register($nama, $email, $password);
 
-            echo ( $isRegistered ? "SUCCESS: New user `$email` is registered!" : "ERROR: Failed to register a new user!" );
-            header("Refresh: 2; URL=".BASE_URI."auth/login");
+            Notification::alert($isRegistered?
+                "SUCCESS: New user `$email` is registered!"
+                :"ERROR: Failed to register a new user!",
+                "auth/login"
+            );
         }
 
         return $this->app->view('auth/register');
     }
 
     public function login() {
-        $email      = @$_POST['email'];
-        $password   = @$_POST['password'];
-        $isSubmitted= isset($_POST['submit']);
-        $isPosted   = $_SERVER['REQUEST_METHOD'] === 'POST';
+        $email       = @$_POST['email'];
+        $password    = @$_POST['password'];
+        $isSubmitted = isset($_POST['submit']);
+        $isPosted    = $_SERVER['REQUEST_METHOD'] === 'POST';
 
-        if ( $isSubmitted && $isPosted && isset($email) && isset($password) ) {
+        if ( $isSubmitted && $isPosted && isset($email, $password) ) {
             $user = $this->app->model('Auth')->login($email, $password);
-        
-            if ( $user ) {
-                // Login berhasil, simpan user dalam session dan alihkan ke halaman utama
-                session_start();
-                $_SESSION["user"] = $user;
-                $_SESSION["KEY"] = $user["id"];
-                header("Location: ".BASE_URI."dashboard");
-            } else {
-                // Login gagal, tampilkan pesan kesalahan
-                echo "ERROR: Invalid email or password! Please try again.";
-                header("Refresh: 2; URL=".BASE_URI."auth/login");
-            }
+            $user ?: Notification::alert("ERROR: Invalid email or password! Please try again.", "auth/login");
+
+            // Login berhasil, simpan user dalam session dan alihkan ke halaman utama
+            session_start();
+            $_SESSION["user"] = $user;
+            $_SESSION["KEY"]  = $user["id"];
+            header("Location: ".BASE_URI."dashboard");   
         }
 
         return $this->app->view('auth/login');
