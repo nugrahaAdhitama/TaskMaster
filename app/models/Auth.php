@@ -1,12 +1,10 @@
 <?php
 
 class Auth {
-    protected $db;
+
     protected $table = 'users';
 
-    public function __construct($db) {
-        $this->db = $db;
-    }
+    public function __construct(private $db) {}
 
     public function register($nama, $email, $password) {
         $uuid = $this->generateUUID();
@@ -52,7 +50,7 @@ class Auth {
         return ( $stmt->execute() ? true : false );
     }    
 
-    private function generateUUID() {
+    public function generateUUID() {
         return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
             mt_rand(0, 0xffff), mt_rand(0, 0xffff),
             mt_rand(0, 0xffff),
@@ -104,7 +102,4 @@ class Auth {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
     
-    
 }
-
-?>
