@@ -1,6 +1,7 @@
 <?php
 
 class Task {
+    
     private $table = 'tugas';
 
     public function __construct(private $db) {}
@@ -13,8 +14,9 @@ class Task {
     }
 
     public function findTaskByID(string $id) {
-        $query = "SELECT * FROM $this->table WHERE id = $id";
+        $query = "SELECT * FROM $this->table WHERE id = :id";
         $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':id', $id);
         return ($stmt->execute() ? true : false);
     }
 

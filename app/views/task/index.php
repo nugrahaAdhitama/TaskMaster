@@ -5,11 +5,20 @@
 
 <table>
     <tr>
-        <th>COLUMNS</th>
+        <th>Title</th>
+        <th>Deadline</th>
+        <th>Status</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Aksi</th>
     </tr>
     <!-- <?php foreach ( $tasks as $task ) : ?> -->
     <tr>
-        <td><?= $task["column"] ?></td>
+        <td><?= $task["judul"] ?></td>
+        <td><?= $task["deadline"] ?></td>
+        <td><?= $task["status"] ?></td>
+        <td><?= $task["tipe"] ?></td>
+        <td><?= $task["deskripsi"] ?></td>
         <td>
             <a href="<?= BASE_URI ?>task/view/<?= $task["id"] ?>"?>view</a>
             <a href="<?= BASE_URI ?>task/invite/<?= $task["id"] ?>"?>invite</a>

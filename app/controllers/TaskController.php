@@ -3,6 +3,12 @@
 use App\Core\Notification;
 
 class TaskController {
+
+    private array $fields = [
+        "required" => ['judul', 'deadline', 'status', 'tipe'],
+        "optional" => ['deskripsi']
+    ];
+
     public function __construct(private $app) {}
 
     public function index() {
@@ -13,24 +19,14 @@ class TaskController {
     }
 
     public function add() {
-        $fileds = [
-            "required" => ['judul', 'deadline', 'status', 'tipe'],
-            "optional" => ['deskripsi']
-        ];
+        $fields = $this->fields;
 
         if( isset($_POST['submit']) ) {
-            $isValid = true;
-            foreach ( $fileds['required'] as $required ) {
-                if ( !isset($_POST[$required]) || empty($_POST[$required]) ) {
-                    $isValid = false;
-                    break;
-                }
-            }
-
+            $isValid = !array_diff_key(array_flip($fields['required']), $_POST);
             $isValid ?: Notification::alert("ERROR: Failed to submit form!: Missing required fields!", "task/add");
 
             $model = $this->app->model('Task');
-            $addedTask = $model->addNewTask(array_merge($fileds['required'], $fileds['optional']), $_POST);
+            $addedTask = $model->addNewTask(array_merge($fields['required'], $fields['optional']), $_POST);
 
             Notification::alert($addedTask ? "SUCCESS: New task is added!" : "ERROR: Failed to add a new task!", "task");
         }
@@ -41,16 +37,13 @@ class TaskController {
 
     public function edit() {
         $this->app->allowParams();
-        $fields = [
-            "required" => ['judul', 'deadline', 'status', 'tipe'],
-            "optional" => ['deskripsi']
-        ];
+        $fields = $this->fields;
         $id = $this->app->params[0] ?? '';
         $user_id = $_SESSION['user']['id'];
         $model = $this->app->model('Task');
 
-        $tasks = $model->getTaskByOwner($id, $user_id);
-        $tasks ?: exit("<pre>ERROR: Task not found!</pre><a href='".BASE_URI."task'>Back</a>");
+        $task = $model->getTaskByOwner($id, $user_id);
+        $task ?: exit("<pre>ERROR: Task not found!</pre><a href='".BASE_URI."task'>Back</a>");
 
         if ( isset($_POST['submit'] )) {
             $columns        = array_merge($fields['required'], $fields['optional']);
@@ -58,11 +51,11 @@ class TaskController {
 
             $editedTask   = $id ? $model->editTask($id, $user_id, $data) : false;
 
-            Notification::alert($editedTask ? "SUCCESS: Task is updated!" : "ERROR: Failed to update task!", "schedule");
+            Notification::alert($editedTask ? "SUCCESS: Task is updated!" : "ERROR: Failed to update task!", "task");
         }
 
         $data = [
-            'tasks' => $tasks,
+            'task' => $task,
             'title' => APP_NAME." - Edit Task"
         ];
 
